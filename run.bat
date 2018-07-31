@@ -44,9 +44,11 @@ Title Mupload v%VERSION%
 
 IF "%1"=="-?" GOTO README
 IF "%1"=="-u" set ONLINEUPD=%2
-	IF NOT DEFINED ONLINEUPD set ONLINEUPD=https://www.dropbox.com/s/ua7umei47eb2hf2/version?dl=1
+	IF NOT DEFINED ONLINEUPD set ONLINEUPD=https://github.com/julienfgsf/Mupload/raw/master/version
 
 bitsadmin /transfer version %ONLINEUPD% "%cd%\version"
+
+
 mode con: lines=24 cols=91
 cls
 					echo.
@@ -90,7 +92,7 @@ echo    -?                       Affiche ce message d'aide.
 GOTO EOF
 
 :DEBUTLOG
-
+cls
 REM ===========> Initialisation du LOG
 echo ========================================================== >> log.txt
 echo ========================================================== >> log.txt
@@ -434,17 +436,14 @@ ping 127.0.0.0 > nul
 mkdir upd
 
 for /f "tokens=2 delims= " %%a in ('findstr "url" "version"') do set UPDATE=%%a
-
-IF %UPDATE:~8,4% EQU mega ( for /f "tokens=1 delims= " %%i in ('megadl %UPDATE% --path="upd\update" ^| findstr Downloaded') do set RESULT=%%i )
-IF %UPDATE:~12,7% EQU dropbox ( bitsadmin /transfer upd "%UPDATE%" "upd\update" )
+for /f "tokens=*" %%b in ('bitsadmin /transfer upd "%UPDATE%" "%cd%\upd\update.bin"') do set RESULT="%%b"
+echo R‚sultat : %RESULT%
 pause
-
-
 del /q version
 
-IF NOT DEFINED RESULT GOTO UPD_ERR
+IF %RESULT% EQU ERROR GOTO UPD_ERR
 
-7z e "upd\update" -oupd\tmp\
+7z e "upd\update.bin" -oupd\tmp\
 	IF %errorlevel% NEQ 0 GOTO UPD_ERR
 
 	
@@ -457,7 +456,7 @@ IF NOT DEFINED RESULT GOTO UPD_ERR
 		ECHO start run.exe>> upd\update.cmd
 		ECHO exit>> upd\update.cmd
 		
-
+pause
 start upd\update.cmd
 GOTO EOF
 
